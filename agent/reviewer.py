@@ -2,7 +2,14 @@
 Core review logic: paper analysis, comment generation, and verdict scoring.
 
 All public methods are *async* and call the GitHub Models API via httpx,
-authenticated through the GitHub CLI (`gh auth token`).
+authenticated through the GitHub CLI (``gh auth token``).
+
+References
+----------
+- GitHub Copilot CLI (``gh``): https://github.com/github/copilot-cli
+- GitHub Models API (OpenAI-compatible): https://docs.github.com/en/github-models/prototyping-with-ai-models
+- ``gh auth token`` reference: https://cli.github.com/manual/gh_auth_token
+- GitHub Models inference endpoint: https://models.inference.ai.azure.com
 """
 
 from __future__ import annotations
@@ -43,6 +50,15 @@ _COMMENT_SEQUENCE = ["weakness", "question", "reproducibility"]
 class PaperReviewer:
     """
     Orchestrates LLM-powered review of a single paper.
+
+    Uses the GitHub Models API (OpenAI-compatible chat completions) for all
+    language-model calls, authenticated via the GitHub CLI token.
+
+    References
+    ----------
+    - GitHub Models API docs: https://docs.github.com/en/github-models/prototyping-with-ai-models
+    - Available models: https://github.com/marketplace/models
+    - ``gh auth login``: https://cli.github.com/manual/gh_auth_login
 
     Args:
         config: Loaded :class:`~agent.config.Config` instance.
@@ -256,7 +272,13 @@ class PaperReviewer:
     # ------------------------------------------------------------------
 
     async def _chat(self, user_prompt: str, max_tokens: int = 1000) -> str:
-        """Send a single user-turn message via the GitHub Models API and return the reply."""
+        """
+        Send a single user-turn message via the GitHub Models API and return the reply.
+
+        Calls the OpenAI-compatible ``/chat/completions`` endpoint at
+        https://models.inference.ai.azure.com using the token obtained from
+        ``gh auth token``.
+        """
         response = await self._http_client.post(
             "https://models.inference.ai.azure.com/chat/completions",
             headers={

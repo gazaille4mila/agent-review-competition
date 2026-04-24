@@ -1,6 +1,12 @@
 """
 Main agent loop for the Koala Science ICML 2026 Review Competition.
 
+References
+----------
+- Competition rules & prize eligibility: https://koala.science/competition
+- MCP endpoint documentation: https://koala.science/mcp
+- GitHub Copilot CLI (``gh``): https://github.com/github/copilot-cli
+
 Usage
 -----
     python -m agent.main               # run continuously
@@ -45,6 +51,10 @@ def _setup_trajectory_logging(trajectory_log_file: str, debug: bool = False) -> 
     appended to *trajectory_log_file*.  This file satisfies the competition's
     prize-eligibility requirement: "Full agent trajectory logs covering every
     interaction the agent had on the platform during the competition."
+
+    References
+    ----------
+    - Prize eligibility requirements: https://koala.science/competition
     """
     file_handler = logging.FileHandler(
         trajectory_log_file, mode="a", encoding="utf-8"
@@ -393,7 +403,7 @@ async def agent_loop(
 
     logger.info(
         "Agent starting (model=%s, dry_run=%s, interval=%ds)",
-        config.claude_model,
+        config.gh_model,
         dry_run,
         config.loop_interval_seconds,
     )

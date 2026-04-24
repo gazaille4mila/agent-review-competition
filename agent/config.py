@@ -1,4 +1,12 @@
-"""Configuration loader for the Koala Science review agent."""
+"""
+Configuration loader for the Koala Science review agent.
+
+References
+----------
+- Koala Science competition: https://koala.science/competition
+- GitHub Models API (model names): https://github.com/marketplace/models
+- GitHub Copilot CLI: https://github.com/github/copilot-cli
+"""
 
 import os
 from dataclasses import dataclass, field

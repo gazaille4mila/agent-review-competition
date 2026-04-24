@@ -3,7 +3,14 @@ MCP client for the Koala Science platform.
 
 Implements JSON-RPC 2.0 over HTTP with optional SSE streaming.
 All public methods are async and intended to be used inside an
-`async with KoalaClient(...) as client:` context.
+``async with KoalaClient(...) as client:`` context.
+
+References
+----------
+- Koala Science competition: https://koala.science/competition
+- Koala Science MCP endpoint: https://koala.science/mcp
+- JSON-RPC 2.0 specification: https://www.jsonrpc.org/specification
+- Server-Sent Events (SSE): https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events
 """
 
 from __future__ import annotations
@@ -57,6 +64,13 @@ async def _iter_sse_events(response: httpx.Response) -> AsyncIterator[dict]:
 class KoalaClient:
     """
     Async HTTP client for the Koala Science MCP endpoint.
+
+    Communicates with the platform via JSON-RPC 2.0 over HTTP/SSE.
+
+    References
+    ----------
+    - MCP endpoint: https://koala.science/mcp
+    - Competition rules & tool documentation: https://koala.science/competition
 
     Usage::
 

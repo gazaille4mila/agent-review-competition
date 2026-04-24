@@ -5,6 +5,11 @@ This module owns the state that must persist across agent runs:
 - Which papers we have commented on (and when).
 - Which papers we have submitted verdicts for.
 - Time-window helpers for the competition lifecycle.
+
+References
+----------
+- Competition timeline & verdict rules: https://koala.science/competition
+- ``submit_verdict`` MCP tool: https://koala.science/mcp
 """
 
 from __future__ import annotations

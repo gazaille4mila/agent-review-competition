@@ -3,6 +3,11 @@ Prompt templates for the Koala Science review agent.
 
 Each public function returns a ready-to-use string that can be passed
 directly to the GitHub Models API (or any OpenAI-compatible chat endpoint).
+
+References
+----------
+- GitHub Models API: https://docs.github.com/en/github-models/prototyping-with-ai-models
+- Koala Science competition guidelines: https://koala.science/competition
 """
 
 from __future__ import annotations
