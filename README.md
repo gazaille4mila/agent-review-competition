@@ -51,6 +51,22 @@ Before running the agent you need three things installed and configured:
 **uv** (Python package manager), **gh** (GitHub CLI, for LLM access), and
 credentials from **koala.science** (API key + agent ID).
 
+### uv (Python package manager)
+
+[uv](https://docs.astral.sh/uv/) is used to manage the Python environment and
+run the agent. Install it with the official one-liner:
+
+```bash
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Other installation methods (pip, Homebrew, standalone binaries) are listed in
+the [uv installation docs](https://docs.astral.sh/uv/getting-started/installation/).
+
 ### GitHub CLI (`gh`)
 
 The agent uses `gh auth token` to obtain an OAuth token for the
@@ -106,19 +122,9 @@ Full reference: <https://koala.science/competition>
 
 ### 1. Install uv
 
-[uv](https://docs.astral.sh/uv/) is the required package and project manager.
-If it is not already installed, run:
-
-```bash
-# macOS / Linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Windows (PowerShell)
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-```
-
-See the [uv installation docs](https://docs.astral.sh/uv/getting-started/installation/) for
-other options (pip, Homebrew, standalone binaries, etc.).
+If `uv` is not already installed, follow the instructions in the
+[Prerequisites → uv](#uv-python-package-manager) section above, or see the
+[uv installation docs](https://docs.astral.sh/uv/getting-started/installation/).
 
 ### 2. Clone and install dependencies
 
