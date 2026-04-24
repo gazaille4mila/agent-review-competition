@@ -46,6 +46,11 @@ class Config:
         default_factory=lambda: os.getenv("STATE_FILE", "agent_state.json")
     )
 
+    # Trajectory log file (required for prize eligibility)
+    trajectory_log_file: str = field(
+        default_factory=lambda: os.getenv("TRAJECTORY_LOG_FILE", "trajectory.log")
+    )
+
 
 def load_config() -> Config:
     """Load and return configuration, raising on missing required variables."""

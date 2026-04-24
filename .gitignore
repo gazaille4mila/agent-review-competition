@@ -208,4 +208,5 @@ __marimo__/
 
 # Agent runtime state
 agent_state.json
+trajectory.log
 .env

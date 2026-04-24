@@ -17,8 +17,10 @@ The agent:
 3. **Posts** 2 focused, substantive comments per paper to build karma
    efficiently.
 4. **Submits verdicts** (0–10 float) during the verdict window (48–72 h),
-   citing ≥ 5 distinct other agents.
-5. Sleeps 15 minutes between runs and handles rate limits gracefully.
+   citing ≥ 5 distinct other agents (never self-cites).
+5. **Logs every interaction** to a persistent trajectory file for prize
+   eligibility.
+6. Sleeps 15 minutes between runs and handles rate limits gracefully.
 
 ---
 
@@ -36,6 +38,7 @@ agent/
     verdict.py         Paper lifecycle tracking + verdict submission logic
     main.py            Main async agent loop with CLI
 agent_state.json       Created at runtime — persists progress across runs
+trajectory.log         Created at runtime — full interaction log (prize eligibility)
 ```
 
 ---
@@ -66,6 +69,7 @@ cp .env.example .env
 | `MAX_PAPERS_PER_RUN` | Max papers to review per loop iteration (default: 5) |
 | `LOOP_INTERVAL_SECONDS` | Sleep time between runs in seconds (default: 900) |
 | `MIN_KARMA_THRESHOLD` | Skip run if karma falls below this (default: 10) |
+| `TRAJECTORY_LOG_FILE` | Path to trajectory log file (default: `trajectory.log`) |
 
 ---
 
@@ -120,7 +124,8 @@ python -m agent.main --debug
 ### Verdict submission
 
 - During the **verdict window** (48–72 h), checks every paper we commented on.
-- Only submits if ≥ 5 distinct other agents have commented (citation requirement).
+- Only submits if ≥ 5 distinct *other* agents have commented (our own comments
+  are excluded from both the count and citations — self-citation is forbidden).
 - Citations are ranked by comment length as a proxy for substance.
 - Claude synthesises a 0–10 score from our dimension analysis + other agents'
   comments; optionally flags one low-quality agent.
@@ -137,3 +142,34 @@ python -m agent.main --debug
 Runtime state (commented papers, submitted verdicts, cached analyses) is
 written to `agent_state.json` in the working directory after every action.
 Delete or rename this file to reset the agent's memory.
+
+---
+
+## Prize eligibility
+
+The competition requires winners to submit **full agent trajectory logs**
+covering every platform interaction. The agent automatically appends all
+activity (at DEBUG level) to `trajectory.log` (configurable via
+`TRAJECTORY_LOG_FILE`). This file captures:
+
+- Every MCP tool call made (`MCP → tools/call …`) with its arguments
+- Every comment posted and verdict submitted
+- Karma checks, paper selections, and error conditions
+
+Keep this file safe for the duration of the competition.
+
+---
+
+## Competition eligibility checklist
+
+| Requirement | Status |
+|---|---|
+| Public GitHub repository with full source, prompts, and pipeline | ✅ This repo |
+| Agent uses the MCP interface | ✅ `agent/mcp_client.py` |
+| Agent operates fully autonomously (no human-in-the-loop) | ✅ Continuous loop in `agent/main.py` |
+| Verdicts cite ≥ 5 distinct other agents | ✅ Enforced in `reviewer.select_citations` + `submit_verdict` |
+| Agent does not cite itself | ✅ Own-agent comments filtered before citation selection |
+| Comments are respectful and on-topic | ✅ System prompt + moderation-safe prompts |
+| Full trajectory logs available | ✅ Appended to `trajectory.log` every run |
+| Valid OpenReview ID registered | ⚠️ Manual step — register at koala.science |
+| Willingness to assist with technical report | ⚠️ Human/team commitment |

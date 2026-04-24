@@ -36,6 +36,40 @@ logging.basicConfig(
 )
 logger = logging.getLogger("agent.main")
 
+
+def _setup_trajectory_logging(trajectory_log_file: str, debug: bool = False) -> None:
+    """
+    Attach a file handler to the root logger for persistent trajectory logging.
+
+    Every interaction logged at DEBUG level (or INFO when *debug* is False) is
+    appended to *trajectory_log_file*.  This file satisfies the competition's
+    prize-eligibility requirement: "Full agent trajectory logs covering every
+    interaction the agent had on the platform during the competition."
+    """
+    file_handler = logging.FileHandler(
+        trajectory_log_file, mode="a", encoding="utf-8"
+    )
+    # Always capture DEBUG-level records in the file so MCP request/response
+    # pairs (logged at DEBUG in mcp_client.py) are preserved.
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(
+        logging.Formatter(
+            "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+            datefmt="%Y-%m-%dT%H:%M:%S",
+        )
+    )
+    root = logging.getLogger()
+    root.addHandler(file_handler)
+    # Ensure the root logger forwards DEBUG records to the file handler even
+    # when the stdout handler is set to INFO.
+    if root.level > logging.DEBUG:
+        root.setLevel(logging.DEBUG)
+    # But keep stdout at INFO unless --debug is requested.
+    for handler in root.handlers:
+        if isinstance(handler, logging.StreamHandler) and handler.stream is sys.stdout:
+            handler.setLevel(logging.DEBUG if debug else logging.INFO)
+    logger.info("Trajectory logging active → %s", trajectory_log_file)
+
 # ---------------------------------------------------------------------------
 # Graceful shutdown
 # ---------------------------------------------------------------------------
@@ -147,10 +181,23 @@ async def run_once(
 
         elapsed = paper_meta.get("time_elapsed_hours", 0.0)
         try:
-            other_comments = await client.list_comments(paper_id)
+            all_comments = await client.list_comments(paper_id)
         except MCPError as exc:
             logger.error("list_comments(%s) failed: %s", paper_id, exc)
             continue
+
+        # Exclude our own agent's comments — the platform forbids self-citation
+        # and we must not cite agents registered by the same user.
+        other_comments = [
+            c for c in all_comments
+            if c.get("agent_id") != config.koala_agent_id
+        ]
+        logger.debug(
+            "Paper %s: %d total comments, %d from other agents",
+            paper_id,
+            len(all_comments),
+            len(other_comments),
+        )
 
         ready, reason = verdict_mgr.can_submit_verdict(
             paper_id=paper_id,
@@ -323,15 +370,24 @@ async def _handle_verdict_paper(
 # ---------------------------------------------------------------------------
 
 
-async def agent_loop(dry_run: bool = False, run_once_flag: bool = False) -> None:
+async def agent_loop(
+    dry_run: bool = False,
+    run_once_flag: bool = False,
+    debug: bool = False,
+) -> None:
     """
     Continuously run the agent until interrupted.
 
     Args:
         dry_run:       If True, simulate all actions without posting.
         run_once_flag: If True, run a single iteration then exit.
+        debug:         If True, show DEBUG messages on stdout.
     """
     config = load_config()
+
+    # Set up persistent trajectory logging (prize-eligibility requirement).
+    _setup_trajectory_logging(config.trajectory_log_file, debug=debug)
+
     verdict_mgr = VerdictManager(state_file=config.state_file)
     reviewer = PaperReviewer(config=config)
 
@@ -396,14 +452,17 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    if args.debug:
-        logging.getLogger().setLevel(logging.DEBUG)
-
     # Register graceful-shutdown handlers
     for sig in (signal.SIGINT, signal.SIGTERM):
         signal.signal(sig, _handle_signal)
 
-    asyncio.run(agent_loop(dry_run=args.dry_run, run_once_flag=args.once))
+    asyncio.run(
+        agent_loop(
+            dry_run=args.dry_run,
+            run_once_flag=args.once,
+            debug=args.debug,
+        )
+    )
 
 
 if __name__ == "__main__":
