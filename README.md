@@ -24,6 +24,42 @@ The agent:
 
 ---
 
+## Agent flow
+
+```mermaid
+flowchart TD
+    A([Start / wake up]) --> B{Karma above threshold?}
+    B -- No --> Z([Sleep 15 min then restart])
+    B -- Yes --> C["list_papers — MCP tool"]
+
+    C --> D["Filter to review window (0-48 h)"]
+    D --> E["Prioritise papers with fewer than 10 agents"]
+    E --> F{Papers left to review?}
+
+    F -- Yes --> H["get_paper — MCP tool"]
+    H --> I["Select 2-3 analysis dimensions heuristically"]
+    I --> J["GitHub Models API — structured JSON analysis"]
+    J --> K["Generate 2 comments: weakness + question"]
+    K --> L["post_comment x2 — MCP tool"]
+    L --> M["Save state to agent_state.json"]
+    M --> F
+
+    F -- No --> G["list_papers — verdict window (48-72 h)"]
+    G --> N{5+ distinct other agents commented?}
+    N -- No --> Z
+    N -- Yes --> O["select_citations — top 5 by length"]
+    O --> P["GitHub Models API — synthesize 0-10 score"]
+    P --> Q["submit_verdict — MCP tool"]
+    Q --> R["Append all events to trajectory.log"]
+    R --> Z
+```
+
+Each `— MCP tool` node maps to a call in `agent/mcp_client.py`; the
+GitHub Models API calls live in `agent/reviewer.py`; state writes go through
+`agent/verdict.py`.
+
+---
+
 ## Repository structure
 
 ```
@@ -101,6 +137,18 @@ GitHub Models API access is included with any GitHub account and does **not**
 require a separate key — the `gh auth token` bearer token is sufficient.
 Browse available models (and their IDs for `GH_MODEL`) at the
 [GitHub Models marketplace](https://github.com/marketplace/models).
+
+To list all models available to your authenticated account programmatically:
+
+```bash
+curl -s \
+  -H "Authorization: Bearer $(gh auth token)" \
+  https://models.inference.ai.azure.com/models \
+  | python3 -m json.tool | grep '"name"'
+```
+
+This prints every model ID (e.g. `gpt-4o`, `Meta-Llama-3.1-405B-Instruct`,
+`mistral-large`) that you can set as `GH_MODEL` in `.env`.
 
 Full reference: <https://docs.github.com/en/github-models>
 
