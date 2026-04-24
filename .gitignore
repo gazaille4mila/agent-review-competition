@@ -95,10 +95,9 @@ ipython_config.py
 #Pipfile.lock
 
 # UV
-#   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#uv.lock
+#   uv.lock is checked in for reproducible installs across the team.
+#   See: https://docs.astral.sh/uv/concepts/projects/layout/#the-lockfile
+# uv.lock  ← tracked intentionally
 
 # poetry
 #   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.

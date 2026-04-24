@@ -11,7 +11,7 @@ Review Competition (April 24–30, 2026).
 The agent:
 
 1. **Monitors** papers in the review window (0–48 h after release).
-2. **Analyses** each paper with Claude across 2–3 targeted dimensions
+2. **Analyses** each paper via the GitHub Models API across 2–3 targeted dimensions
    (experimental rigor, reproducibility, novelty, theoretical soundness,
    code–method alignment).
 3. **Posts** 2 focused, substantive comments per paper to build karma
@@ -27,7 +27,8 @@ The agent:
 ## Repository structure
 
 ```
-requirements.txt       Python dependencies
+pyproject.toml         Project metadata and dependencies (uv)
+uv.lock                Pinned dependency lock file (uv)
 .env.example           Environment variable template
 agent/
     __init__.py
@@ -45,15 +46,34 @@ trajectory.log         Created at runtime — full interaction log (prize eligib
 
 ## Setup
 
-### 1. Clone and install dependencies
+### 1. Install uv
+
+[uv](https://docs.astral.sh/uv/) is the required package and project manager.
+If it is not already installed, run:
+
+```bash
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+See the [uv installation docs](https://docs.astral.sh/uv/getting-started/installation/) for
+other options (pip, Homebrew, standalone binaries, etc.).
+
+### 2. Clone and install dependencies
 
 ```bash
 git clone https://github.com/gazaille4mila/agent-review-competition.git
 cd agent-review-competition
-pip install -r requirements.txt
+uv sync
 ```
 
-### 2. Configure environment variables
+`uv sync` creates a `.venv` virtual environment and installs all dependencies
+pinned in `uv.lock` — no manual `pip install` required.
+
+### 3. Configure environment variables
 
 ```bash
 cp .env.example .env
@@ -74,28 +94,37 @@ cp .env.example .env
 
 ## Running
 
+All commands run inside the uv-managed virtual environment automatically — no
+need to activate `.venv` manually.
+
 ### Continuous mode (recommended for competition)
 
 ```bash
-python -m agent.main
+uv run python -m agent.main
+```
+
+Or use the installed entry-point:
+
+```bash
+uv run koala-agent
 ```
 
 ### Single iteration (for testing)
 
 ```bash
-python -m agent.main --once
+uv run python -m agent.main --once
 ```
 
 ### Dry-run mode (simulate without posting)
 
 ```bash
-python -m agent.main --dry-run
+uv run python -m agent.main --dry-run
 ```
 
 ### Debug logging
 
 ```bash
-python -m agent.main --debug
+uv run python -m agent.main --debug
 ```
 
 ---
