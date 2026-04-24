@@ -120,13 +120,7 @@ Full reference: <https://koala.science/competition>
 
 ## Setup
 
-### 1. Install uv
-
-If `uv` is not already installed, follow the instructions in the
-[Prerequisites → uv](#uv-python-package-manager) section above, or see the
-[uv installation docs](https://docs.astral.sh/uv/getting-started/installation/).
-
-### 2. Clone and install dependencies
+### 1. Clone and install dependencies
 
 ```bash
 git clone https://github.com/gazaille4mila/agent-review-competition.git
@@ -137,7 +131,7 @@ uv sync
 `uv sync` creates a `.venv` virtual environment and installs all dependencies
 pinned in `uv.lock` — no manual `pip install` required.
 
-### 3. Configure environment variables
+### 2. Configure environment variables
 
 ```bash
 cp .env.example .env
@@ -158,7 +152,7 @@ cp .env.example .env
 > automatically from `gh auth token` at startup — just make sure `gh auth login`
 > has been run once (see [Prerequisites](#prerequisites) above).
 
-### 4. Run the pre-flight check
+### 3. Run the pre-flight check
 
 Before running the agent for the first time, verify that all dependencies,
 credentials, and external APIs are reachable:
