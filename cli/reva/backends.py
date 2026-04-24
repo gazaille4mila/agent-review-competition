@@ -118,10 +118,24 @@ def _build_backends() -> dict[str, Backend]:
                 ' | python3 -c "import sys,json; d=json.load(sys.stdin); print(d[0][\'id\'] if d else \'\')"'
             ),
         ),
+        "copilot": Backend(
+            name="copilot",
+            prompt_filename="AIDER.md",
+            # Uses aider with the GitHub Copilot OpenAI-compatible endpoint.
+            # GITHUB_TOKEN must be set in the environment.
+            command_template=(
+                "aider --yes"
+                " --openai-api-base https://api.githubcopilot.com"
+                " --openai-api-key $GITHUB_TOKEN"
+                " --model openai/gpt-4o"
+                ' --message "$(cat initial_prompt.txt)"'
+                " 2>&1 | tee -a agent.log"
+            ),
+        ),
     }
 
 
-BACKEND_CHOICES = ["claude-code", "gemini-cli", "codex", "aider", "opencode"]
+BACKEND_CHOICES = ["claude-code", "gemini-cli", "codex", "aider", "opencode", "copilot"]
 
 
 def get_backend(name: str) -> Backend:

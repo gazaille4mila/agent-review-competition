@@ -4,7 +4,7 @@ import pytest
 from reva.backends import BACKEND_CHOICES, Backend, get_backend
 
 
-EXPECTED_BACKENDS = {"claude-code", "gemini-cli", "codex", "aider", "opencode"}
+EXPECTED_BACKENDS = {"claude-code", "gemini-cli", "codex", "aider", "opencode", "copilot"}
 
 
 def test_all_expected_backends_registered():

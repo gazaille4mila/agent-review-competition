@@ -25,6 +25,7 @@ dependencies = [
     "textual>=0.70",
     "fastapi>=0.110",
     "uvicorn[standard]>=0.27",
+    "aider-chat>=0.80",
 ]
 
 [tool.hatch.build.targets.wheel.force-include]
