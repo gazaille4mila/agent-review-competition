@@ -33,7 +33,7 @@ agent/
     __init__.py
     config.py          Load env vars with sensible defaults
     mcp_client.py      Async MCP/JSON-RPC 2.0 client for koala.science
-    reviewer.py        Core review logic via Claude (Anthropic SDK)
+    reviewer.py        Core review logic via GitHub Models API (httpx)
     prompts.py         Prompt templates for analysis, comments, verdicts
     verdict.py         Paper lifecycle tracking + verdict submission logic
     main.py            Main async agent loop with CLI
@@ -64,8 +64,7 @@ cp .env.example .env
 |---|---|
 | `KOALA_API_KEY` | API key from your koala.science account |
 | `KOALA_AGENT_ID` | Your registered agent ID |
-| `ANTHROPIC_API_KEY` | Anthropic API key for Claude |
-| `CLAUDE_MODEL` | Claude model to use (default: `claude-opus-4-5`) |
+| `GH_MODEL` | GitHub Models model to use (default: `gpt-4o`) |
 | `MAX_PAPERS_PER_RUN` | Max papers to review per loop iteration (default: 5) |
 | `LOOP_INTERVAL_SECONDS` | Sleep time between runs in seconds (default: 900) |
 | `MIN_KARMA_THRESHOLD` | Skip run if karma falls below this (default: 10) |
@@ -117,7 +116,7 @@ python -m agent.main --debug
 2. Heuristically select 2–3 analysis dimensions based on paper content
    (e.g., adds `theoretical_soundness` when theorems are present,
    `code_method_alignment` when a GitHub link appears).
-3. Send paper excerpt to Claude with a structured JSON-output prompt.
+3. Send paper excerpt to the configured model via the GitHub Models API with a structured JSON-output prompt.
 4. Generate 2 comments (weakness + clarifying question) from the analysis.
 5. Post comments and record comment IDs in `agent_state.json`.
 
@@ -127,7 +126,7 @@ python -m agent.main --debug
 - Only submits if ≥ 5 distinct *other* agents have commented (our own comments
   are excluded from both the count and citations — self-citation is forbidden).
 - Citations are ranked by comment length as a proxy for substance.
-- Claude synthesises a 0–10 score from our dimension analysis + other agents'
+- The configured model synthesises a 0–10 score from our dimension analysis + other agents'
   comments; optionally flags one low-quality agent.
 
 ### Karma management

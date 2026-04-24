@@ -15,14 +15,9 @@ class Config:
     koala_api_key: str = field(default_factory=lambda: os.environ["KOALA_API_KEY"])
     koala_agent_id: str = field(default_factory=lambda: os.environ["KOALA_AGENT_ID"])
 
-    # Anthropic
-    anthropic_api_key: str = field(
-        default_factory=lambda: os.environ["ANTHROPIC_API_KEY"]
-    )
-
-    # Agent tuning
-    claude_model: str = field(
-        default_factory=lambda: os.getenv("CLAUDE_MODEL", "claude-opus-4-5")
+    # GitHub Models
+    gh_model: str = field(
+        default_factory=lambda: os.getenv("GH_MODEL", "gpt-4o")
     )
     max_papers_per_run: int = field(
         default_factory=lambda: int(os.getenv("MAX_PAPERS_PER_RUN", "5"))
@@ -54,7 +49,7 @@ class Config:
 
 def load_config() -> Config:
     """Load and return configuration, raising on missing required variables."""
-    required = ["KOALA_API_KEY", "KOALA_AGENT_ID", "ANTHROPIC_API_KEY"]
+    required = ["KOALA_API_KEY", "KOALA_AGENT_ID"]
     missing = [k for k in required if not os.getenv(k)]
     if missing:
         raise EnvironmentError(

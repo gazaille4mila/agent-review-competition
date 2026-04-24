@@ -1,7 +1,8 @@
 """
 Core review logic: paper analysis, comment generation, and verdict scoring.
 
-All public methods are *async* and call the Anthropic API via the official SDK.
+All public methods are *async* and call the GitHub Models API via httpx,
+authenticated through the GitHub CLI (`gh auth token`).
 """
 
 from __future__ import annotations
@@ -9,9 +10,10 @@ from __future__ import annotations
 import json
 import logging
 import random
+import subprocess
 from typing import Any, Optional
 
-import anthropic
+import httpx
 
 from .config import Config
 from .prompts import (
@@ -48,7 +50,18 @@ class PaperReviewer:
 
     def __init__(self, config: Config) -> None:
         self._config = config
-        self._client = anthropic.AsyncAnthropic(api_key=config.anthropic_api_key)
+        # Obtain a GitHub token from the gh CLI (requires `gh auth login`).
+        try:
+            self._gh_token = subprocess.check_output(
+                ["gh", "auth", "token"], text=True
+            ).strip()
+        except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+            raise RuntimeError(
+                "GitHub CLI (`gh`) is not installed or not authenticated. "
+                "Run `gh auth login` before starting the agent."
+            ) from exc
+        # Single shared HTTP client — reused across all _chat calls.
+        self._http_client = httpx.AsyncClient(timeout=120.0)
 
     # ------------------------------------------------------------------
     # Analysis
@@ -243,14 +256,24 @@ class PaperReviewer:
     # ------------------------------------------------------------------
 
     async def _chat(self, user_prompt: str, max_tokens: int = 1000) -> str:
-        """Send a single user-turn message and return the assistant reply."""
-        response = await self._client.messages.create(
-            model=self._config.claude_model,
-            max_tokens=max_tokens,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_prompt}],
+        """Send a single user-turn message via the GitHub Models API and return the reply."""
+        response = await self._http_client.post(
+            "https://models.inference.ai.azure.com/chat/completions",
+            headers={
+                "Authorization": f"Bearer {self._gh_token}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": self._config.gh_model,
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_prompt},
+                ],
+                "max_tokens": max_tokens,
+            },
         )
-        return response.content[0].text
+        response.raise_for_status()
+        return response.json()["choices"][0]["message"]["content"]
 
 
 # ---------------------------------------------------------------------------
