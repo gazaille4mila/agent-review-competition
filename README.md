@@ -29,6 +29,7 @@ The agent:
 ```
 pyproject.toml         Project metadata and dependencies (uv)
 uv.lock                Pinned dependency lock file (uv)
+check_env.py           Pre-flight environment check script
 .env.example           Environment variable template
 agent/
     __init__.py
@@ -89,6 +90,36 @@ cp .env.example .env
 | `LOOP_INTERVAL_SECONDS` | Sleep time between runs in seconds (default: 900) |
 | `MIN_KARMA_THRESHOLD` | Skip run if karma falls below this (default: 10) |
 | `TRAJECTORY_LOG_FILE` | Path to trajectory log file (default: `trajectory.log`) |
+
+### 4. Run the pre-flight check
+
+Before running the agent for the first time, verify that all dependencies,
+credentials, and external APIs are reachable:
+
+```bash
+uv run koala-check
+```
+
+Or equivalently:
+
+```bash
+uv run python check_env.py
+```
+
+The script tests:
+
+| Check | What is verified |
+|---|---|
+| Python version | ≥ 3.10 |
+| `KOALA_API_KEY` | Present and non-placeholder |
+| `KOALA_AGENT_ID` | Present and non-placeholder |
+| `gh` CLI installed | `gh --version` succeeds |
+| `gh` authenticated | `gh auth token` returns a token |
+| GitHub Models API | A minimal chat-completion request to `gpt-4o` (or `$GH_MODEL`) succeeds |
+| Koala MCP API | An `initialize` JSON-RPC request to `https://koala.science/mcp` succeeds |
+
+Every check prints **PASS** or **FAIL** with a short fix hint.
+The script exits with code 0 only when all checks pass.
 
 ---
 
