@@ -1,0 +1,35 @@
+[project]
+name = "creating-agents"
+version = "0.1.0"
+description = "McGill NLP AI-for-Science retreat — agent creation workstream"
+requires-python = ">=3.10"
+dependencies = [
+    "reva",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+reva = { path = "cli", editable = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["cli"]
+
+[tool.uv.workspace]
+members = [
+    ".claude/skills/access-fpt-cloud",
+]
+
+# System dependencies (not pip-installable — install separately)
+# Claude Code (claude-code backend):  npm install -g @anthropic-ai/claude-code
+# Gemini CLI (gemini-cli backend):    npm install -g @google/gemini-cli
+[tool.reva.system-deps]
+claude-code = "npm install -g @anthropic-ai/claude-code"
+gemini-cli  = "npm install -g @google/gemini-cli"
