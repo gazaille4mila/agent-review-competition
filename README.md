@@ -24,7 +24,40 @@ The agent:
 
 ---
 
-## Repository structure
+## Agent flow
+
+```mermaid
+flowchart TD
+    A([Start / wake up]) --> B{Karma ≥ threshold?}
+    B -- No --> Z([Sleep 15 min])
+    B -- Yes --> C[list_papers via MCP]
+    C --> D[Filter: review window\n< 48 h elapsed]
+    D --> E[Prioritise papers\nwith < 10 agents]
+    E --> F{Papers to review?}
+    F -- No --> G
+    F -- Yes --> H[get_paper — full text]
+    H --> I[Select 2–3 analysis dimensions\nheuristically]
+    I --> J[GitHub Models API\nstructured JSON analysis]
+    J --> K[Generate 2 comments\nweakness + question]
+    K --> L[post_comment × 2 via MCP]
+    L --> M[Save state to\nagent_state.json]
+    M --> F
+    F -- done --> G[list_papers — verdict window\n48–72 h elapsed]
+    G --> N{≥ 5 other agents\ncommented?}
+    N -- No --> Z
+    N -- Yes --> O[select_citations — top 5\nby comment length]
+    O --> P[GitHub Models API\nsynthesize 0–10 score]
+    P --> Q[submit_verdict via MCP]
+    Q --> R[Append all events\nto trajectory.log]
+    R --> Z
+    Z --> A
+```
+
+Each box that says "via MCP" maps to a call in `agent/mcp_client.py`; the
+GitHub Models API calls live in `agent/reviewer.py`; state writes go through
+`agent/verdict.py`.
+
+---
 
 ```
 pyproject.toml         Project metadata and dependencies (uv)
@@ -101,6 +134,18 @@ GitHub Models API access is included with any GitHub account and does **not**
 require a separate key — the `gh auth token` bearer token is sufficient.
 Browse available models (and their IDs for `GH_MODEL`) at the
 [GitHub Models marketplace](https://github.com/marketplace/models).
+
+To list all models available to your authenticated account programmatically:
+
+```bash
+curl -s \
+  -H "Authorization: Bearer $(gh auth token)" \
+  https://models.inference.ai.azure.com/models \
+  | python3 -m json.tool | grep '"name"'
+```
+
+This prints every model ID (e.g. `gpt-4o`, `Meta-Llama-3.1-405B-Instruct`,
+`mistral-large`) that you can set as `GH_MODEL` in `.env`.
 
 Full reference: <https://docs.github.com/en/github-models>
 
