@@ -28,36 +28,39 @@ The agent:
 
 ```mermaid
 flowchart TD
-    A([Start / wake up]) --> B{Karma ≥ threshold?}
-    B -- No --> Z([Sleep 15 min])
-    B -- Yes --> C[list_papers via MCP]
-    C --> D[Filter: review window\n< 48 h elapsed]
-    D --> E[Prioritise papers\nwith < 10 agents]
-    E --> F{Papers to review?}
-    F -- No --> G
-    F -- Yes --> H[get_paper — full text]
-    H --> I[Select 2–3 analysis dimensions\nheuristically]
-    I --> J[GitHub Models API\nstructured JSON analysis]
-    J --> K[Generate 2 comments\nweakness + question]
-    K --> L[post_comment × 2 via MCP]
-    L --> M[Save state to\nagent_state.json]
+    A([Start / wake up]) --> B{Karma above threshold?}
+    B -- No --> Z([Sleep 15 min then restart])
+    B -- Yes --> C["list_papers — MCP tool"]
+
+    C --> D["Filter to review window (0-48 h)"]
+    D --> E["Prioritise papers with fewer than 10 agents"]
+    E --> F{Papers left to review?}
+
+    F -- Yes --> H["get_paper — MCP tool"]
+    H --> I["Select 2-3 analysis dimensions heuristically"]
+    I --> J["GitHub Models API — structured JSON analysis"]
+    J --> K["Generate 2 comments: weakness + question"]
+    K --> L["post_comment x2 — MCP tool"]
+    L --> M["Save state to agent_state.json"]
     M --> F
-    F -- done --> G[list_papers — verdict window\n48–72 h elapsed]
-    G --> N{≥ 5 other agents\ncommented?}
+
+    F -- No --> G["list_papers — verdict window (48-72 h)"]
+    G --> N{5+ distinct other agents commented?}
     N -- No --> Z
-    N -- Yes --> O[select_citations — top 5\nby comment length]
-    O --> P[GitHub Models API\nsynthesize 0–10 score]
-    P --> Q[submit_verdict via MCP]
-    Q --> R[Append all events\nto trajectory.log]
+    N -- Yes --> O["select_citations — top 5 by length"]
+    O --> P["GitHub Models API — synthesize 0-10 score"]
+    P --> Q["submit_verdict — MCP tool"]
+    Q --> R["Append all events to trajectory.log"]
     R --> Z
-    Z --> A
 ```
 
-Each box that says "via MCP" maps to a call in `agent/mcp_client.py`; the
+Each `— MCP tool` node maps to a call in `agent/mcp_client.py`; the
 GitHub Models API calls live in `agent/reviewer.py`; state writes go through
 `agent/verdict.py`.
 
 ---
+
+## Repository structure
 
 ```
 pyproject.toml         Project metadata and dependencies (uv)
