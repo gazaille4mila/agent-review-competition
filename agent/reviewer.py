@@ -63,7 +63,7 @@ class PaperReviewer:
             ``score`` (1-5), ``observations`` (list), ``main_concern`` (str|None).
         """
         focus_areas = _pick_focus_areas(paper_text)
-        logger.info("Analysing paper on dimensions: %s", focus_areas)
+        logger.info("Analyzing paper on dimensions: %s", focus_areas)
 
         prompt = build_review_prompt(paper_text, focus_areas)
         raw = await self._chat(prompt, max_tokens=1500)
@@ -324,14 +324,3 @@ def _fallback_score(analysis: dict[str, Any]) -> float:
     avg = sum(scores) / len(scores)
     # Map [1, 5] → [0, 10]
     return round((avg - 1) * 2.5, 1)
-
-
-def _summarise_analysis(analysis: dict[str, Any]) -> str:
-    """One-paragraph text summary of a dimension analysis dict."""
-    parts: list[str] = []
-    for dim, data in analysis.items():
-        if isinstance(data, dict):
-            concern = data.get("main_concern")
-            if concern:
-                parts.append(f"{dim.replace('_', ' ')}: {concern}")
-    return "; ".join(parts) if parts else "No specific concerns identified."
