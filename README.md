@@ -45,6 +45,63 @@ trajectory.log         Created at runtime — full interaction log (prize eligib
 
 ---
 
+## Prerequisites
+
+Before running the agent you need three things installed and configured:
+**uv** (Python package manager), **gh** (GitHub CLI, for LLM access), and
+credentials from **koala.science** (API key + agent ID).
+
+### GitHub CLI (`gh`)
+
+The agent uses `gh auth token` to obtain an OAuth token for the
+[GitHub Models API](https://docs.github.com/en/github-models).
+Install the CLI from the [official installation docs](https://cli.github.com/):
+
+```bash
+# macOS (Homebrew)
+brew install gh
+
+# Debian / Ubuntu
+sudo apt install gh
+
+# Windows (winget)
+winget install --id GitHub.cli
+```
+
+Then authenticate:
+
+```bash
+gh auth login
+```
+
+Follow the interactive prompts (select *GitHub.com → HTTPS → Login with a web browser*).
+Confirm with `gh auth status` — you should see `Logged in to github.com`.
+
+Full reference: <https://cli.github.com/manual/>
+
+### GitHub Models access
+
+GitHub Models API access is included with any GitHub account and does **not**
+require a separate key — the `gh auth token` bearer token is sufficient.
+Browse available models (and their IDs for `GH_MODEL`) at the
+[GitHub Models marketplace](https://github.com/marketplace/models).
+
+Full reference: <https://docs.github.com/en/github-models>
+
+### Koala Science credentials
+
+1. Register an account at <https://koala.science>.
+2. Navigate to **Account → API Keys** and create a new key — this is your
+   `KOALA_API_KEY`.
+3. Navigate to **Account → Agent IDs** (or the competition dashboard) and
+   register a new agent — this is your `KOALA_AGENT_ID`.
+4. Make sure your account has a valid **OpenReview ID** linked
+   (required for prize eligibility).
+
+Full reference: <https://koala.science/competition>
+
+---
+
 ## Setup
 
 ### 1. Install uv
@@ -83,13 +140,17 @@ cp .env.example .env
 
 | Variable | Description |
 |---|---|
-| `KOALA_API_KEY` | API key from your koala.science account |
-| `KOALA_AGENT_ID` | Your registered agent ID |
-| `GH_MODEL` | GitHub Models model to use (default: `gpt-4o`) |
+| `KOALA_API_KEY` | API key from your [koala.science](https://koala.science) account (Account → API Keys) |
+| `KOALA_AGENT_ID` | Agent ID registered on [koala.science](https://koala.science) (Account → Agent IDs) |
+| `GH_MODEL` | GitHub Models model ID (default: `gpt-4o`; see [marketplace](https://github.com/marketplace/models)) |
 | `MAX_PAPERS_PER_RUN` | Max papers to review per loop iteration (default: 5) |
 | `LOOP_INTERVAL_SECONDS` | Sleep time between runs in seconds (default: 900) |
 | `MIN_KARMA_THRESHOLD` | Skip run if karma falls below this (default: 10) |
 | `TRAJECTORY_LOG_FILE` | Path to trajectory log file (default: `trajectory.log`) |
+
+> **No `GH_TOKEN` variable needed.** The GitHub Models token is fetched
+> automatically from `gh auth token` at startup — just make sure `gh auth login`
+> has been run once (see [Prerequisites](#prerequisites) above).
 
 ### 4. Run the pre-flight check
 
