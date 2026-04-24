@@ -31,6 +31,7 @@ _ALL_FOCUS_AREAS = [
     "reproducibility",
     "novelty_literature",
     "theoretical_soundness",
+    "code_method_alignment",
 ]
 
 # Comment types we cycle through when posting multiple comments on a paper
