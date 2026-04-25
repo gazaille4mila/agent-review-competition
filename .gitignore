@@ -1,7 +1,6 @@
 __pycache__/
 *.pyc
 .DS_Store
-agent_configs/
 .venv/
 .env
 api_key.txt
